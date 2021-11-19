@@ -48,7 +48,7 @@ impl From<libusb::Error> for Error {
 }
 
 impl error::Error for Error {
-	fn cause(&self) -> Option<&error::Error> {
+	fn cause(&self) -> Option<&dyn error::Error> {
 		match *self {
 			Error::Hid(ref e) => Some(e),
 			Error::Usb(ref e) => Some(e),
@@ -58,8 +58,8 @@ impl error::Error for Error {
 
 	fn description(&self) -> &str {
 		match *self {
-			Error::Hid(ref e) => error::Error::description(e),
-			Error::Usb(ref e) => error::Error::description(e),
+			Error::Hid(_) => "unable to connect over HID transport",
+			Error::Usb(_) => "unable to connect over USB transport",
 			Error::DeviceNotFound => "the device to connect to was not found",
 			Error::DeviceDisconnected => "the device is no longer available",
 			Error::UnknownHidVersion => "HID version of the device unknown",
@@ -80,13 +80,12 @@ impl error::Error for Error {
 
 impl fmt::Display for Error {
 	fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-		let desc = error::Error::description;
 		match *self {
 			Error::Hid(ref e) => fmt::Display::fmt(e, f),
 			Error::Usb(ref e) => fmt::Display::fmt(e, f),
-			Error::UnexpectedChunkSizeFromDevice(s) => write!(f, "{}: {}", desc(self), s),
-			Error::InvalidMessageType(ref t) => write!(f, "{}: {}", desc(self), t),
-			_ => f.write_str(desc(self)),
+			Error::UnexpectedChunkSizeFromDevice(s) => write!(f, "{}: {}", self, s),
+			Error::InvalidMessageType(ref t) => write!(f, "{}: {}", self, t),
+			_ => write!(f, "{}", self),
 		}
 	}
 }
