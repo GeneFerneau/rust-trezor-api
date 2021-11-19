@@ -86,7 +86,7 @@ impl From<secp256k1::Error> for Error {
 }
 
 impl error::Error for Error {
-	fn cause(&self) -> Option<&error::Error> {
+	fn cause(&self) -> Option<&dyn error::Error> {
 		match *self {
 			Error::TransportConnect(ref e) => Some(e),
 			Error::TransportBeginSession(ref e) => Some(e),
@@ -115,7 +115,7 @@ impl error::Error for Error {
 			Error::UnexpectedInteractionRequest(_) => {
 				"an unexpected interaction request was returned by the device"
 			}
-			Error::Base58(ref e) => error::Error::description(e),
+			Error::Base58(_) => "Base58 encoding error",
 			Error::UnsupportedNetwork => "given network is not supported",
 			Error::InvalidEntropy => "provided entropy is not 32 bytes",
 			Error::TxRequestInvalidIndex(_) => {
@@ -166,7 +166,7 @@ impl fmt::Display for Error {
 			Error::InvalidPsbt(ref m) => write!(f, "invalid PSBT: {}", m),
 			Error::BitcoinEncode(ref e) => write!(f, "bitcoin encoding error: {}", e),
 			Error::Secp256k1(ref e) => write!(f, "ECDSA signature error: {}", e),
-			_ => f.write_str(error::Error::description(self)),
+			_ => write!(f, "{}", self),
 		}
 	}
 }
